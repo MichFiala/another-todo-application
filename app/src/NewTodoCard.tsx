@@ -1,11 +1,4 @@
-import {
-  Button,
-  NumberInput,
-  Stack,
-  Text,
-  Textarea,
-  TextInput,
-} from "@mantine/core";
+import { Button, Stack, Textarea, TextInput } from "@mantine/core";
 import React from "react";
 import { TodoTaskDto, TodoTaskDtoRecord } from "./api-client";
 import { ArrowLeft, Check } from "react-feather";
@@ -15,6 +8,7 @@ export function NewTodoCard({
   index,
   onSave,
   cancel,
+  canCancel
 }: {
   item: TodoTaskDtoRecord | TodoTaskDto;
   index: number;
@@ -23,6 +17,7 @@ export function NewTodoCard({
   onSave: (item: TodoTaskDto) => void;
   onRemove?: (item: TodoTaskDtoRecord) => void;
   cancel?: () => void;
+  canCancel?: boolean
 }) {
   const [newItem, setNewItem] = React.useState<TodoTaskDto | null>(
     item as TodoTaskDto,
@@ -53,15 +48,14 @@ export function NewTodoCard({
               setNewItem({ ...newItem, description: e.target.value })
             }
           />
-          <NumberInput
+          {/* <NumberInput
             placeholder="Odhadovaný čas (minuty)"
             value={newItem.estimatedTime}
             onChange={(value) =>
               setNewItem({ ...newItem, estimatedTime: value as number })
             }
-          />
+          /> */}
           <Button
-            m={10}
             variant="light"
             size="lg"
             onClick={() => onSave(newItem)}
@@ -70,9 +64,16 @@ export function NewTodoCard({
             <Check />
           </Button>
 
-          <Button m={10} variant="light" size="lg" onClick={cancel} c={"blue"}>
-            <ArrowLeft />
-          </Button>
+          {canCancel && (
+            <Button
+              variant="light"
+              size="lg"
+              onClick={cancel}
+              c={"blue"}
+            >
+              <ArrowLeft />
+            </Button>
+          )}
         </>
       )}
     </Stack>

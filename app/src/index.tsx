@@ -6,7 +6,6 @@ import reportWebVitals from "./reportWebVitals";
 import { createTheme, MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
 import { Auth0Provider } from "@auth0/auth0-react";
 
 const root = ReactDOM.createRoot(
@@ -20,11 +19,11 @@ const queryClient = new QueryClient();
 
 root.render(
   <Auth0Provider
-    domain={"dev-cklbf8biw8aj861m.eu.auth0.com"}
-    clientId={"UMv3SmBXkjNKwhViUe9RAx2JI0GePuD0"}
+    domain={process.env.REACT_APP_AUTH0_DOMAIN!}
+    clientId={process.env.REACT_APP_AUTH0_CLIENT_ID!}
     authorizationParams={{
       redirect_uri: window.location.origin,
-      audience: "https://dev-cklbf8biw8aj861m.eu.auth0.com/api/v2/",
+      audience: process.env.REACT_APP_AUTH0_AUDIENCE,
     }}
     cacheLocation="localstorage"
     useRefreshTokens={true}

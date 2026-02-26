@@ -1,6 +1,5 @@
 import { Button, Stack, Typography } from "@mantine/core";
-import React from "react";
-import { TodoTaskDto, TodoTaskDtoRecord } from "./api-client";
+import { TodoTaskDtoRecord } from "./api-client";
 import { Check, Pause, Trash } from "react-feather";
 import {
   motion,
@@ -9,7 +8,7 @@ import {
   useTransform,
 } from "framer-motion";
 
-const THRESHOLD = 200;
+const THRESHOLD = 150;
 const ANIMATION_THRESHOLD = 300;
 
 const MotionStack = motion(Stack);

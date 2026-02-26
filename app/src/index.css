@@ -1,6 +1,11 @@
 body {
   background-color: #a3b18a !important;
 }
+
+.app-header {
+   background-color: #a3b18a !important;
+}
+
 .card-stack {
   display: grid;
   height: 52vh;

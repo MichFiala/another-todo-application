@@ -1,11 +1,8 @@
-using System.Linq.Expressions;
 using System.Security.Claims;
 using api;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,9 +28,9 @@ builder.Services.AddDbContextFactory<AppDbContext>(options =>
     options.UseNpgsql(connectionString), ServiceLifetime.Scoped);
 
 
-var auth0Domain = "dev-cklbf8biw8aj861m.eu.auth0.com";
-var auth0Audience = "https://dev-cklbf8biw8aj861m.eu.auth0.com/api/v2";
-var auth0Issuer = "https://dev-cklbf8biw8aj861m.eu.auth0.com/";
+string? auth0Domain = builder.Configuration["Auth0:Domain"];
+string? auth0Audience = builder.Configuration["Auth0:Audience"];
+string? auth0Issuer = builder.Configuration["Auth0:Issuer"];
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
      .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
