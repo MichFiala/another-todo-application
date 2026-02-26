@@ -11,6 +11,10 @@ body {
   height: 52vh;
 }
 
+input, textarea {
+  font-size: 16px !important;
+}
+
 
 .card {
   grid-area: 1 / 1;

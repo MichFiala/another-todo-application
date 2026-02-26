@@ -11,7 +11,7 @@ import {
 const THRESHOLD = 150;
 const ANIMATION_THRESHOLD = 300;
 
-const MotionStack = motion(Stack);
+const MotionStack = motion.create(Stack);
 
 export function Card({
   item,
@@ -50,7 +50,7 @@ export function Card({
 
   return (
     <MotionStack
-      key={index}
+      key={`${item.name}-${item.order}`}
       drag
       dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       className="card"
