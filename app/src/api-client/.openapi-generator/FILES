@@ -1,0 +1,12 @@
+.gitignore
+.npmignore
+api.ts
+base.ts
+common.ts
+configuration.ts
+docs/ApiApi.md
+docs/TaskState.md
+docs/TodoTaskDto.md
+docs/TodoTaskDtoRecord.md
+git_push.sh
+index.ts

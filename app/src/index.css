@@ -1,0 +1,40 @@
+body {
+  background-color: #a3b18a !important;
+}
+.card-stack {
+  display: grid;
+  height: 52vh;
+}
+
+
+.card {
+  grid-area: 1 / 1;
+  background: #f7e7ce;
+  padding: 2rem;
+  border-radius: 12px;
+  color: #344e41;
+}
+.card-header {
+  font-size: 2rem;
+  font-weight: bold;
+}
+.card-body {
+  font-size: 1rem;
+}
+.card-footer {
+  font-size: 1rem;
+}
+.card:nth-child(1) {
+  z-index: 3;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+.card:nth-child(2) {
+  z-index: 2;
+  transform: translateY(12px) scale(0.97);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+.card:nth-child(3) {
+  z-index: 1;
+  transform: translateY(24px) scale(0.94);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
