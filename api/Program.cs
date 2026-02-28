@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Threading.Channels;
 using api;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -18,6 +19,9 @@ if (builder.Environment.IsDevelopment())
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddSingleton<TasksHub>();
+builder.Services.AddSingleton<TasksHubBackgroundCleanService>();
+builder.Services.AddHostedService(provider => provider.GetRequiredService<TasksHubBackgroundCleanService>());
 
 
 string? connectionString = builder.Configuration["ConnectionStrings:Default"];
@@ -45,28 +49,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
              ValidAudiences = [auth0Audience],
              ValidIssuers = [auth0Issuer]
          };
-         options.Events = new JwtBearerEvents
-         {
-             OnMessageReceived = context =>
-             {
-                 var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
-                 if (string.IsNullOrEmpty(authHeader))
-                     Console.WriteLine("No Authorization header present");
-                 else
-                     Console.WriteLine($"Authorization header: {authHeader[..Math.Min(50, authHeader.Length)]}...");
-                 return Task.CompletedTask;
-             },
-             OnAuthenticationFailed = context =>
-             {
-                 Console.WriteLine($"Authentication failed: {context.Exception.Message}");
-                 return Task.CompletedTask;
-             },
-             OnTokenValidated = context =>
-             {
-                 Console.WriteLine($"Token validated for: {context.Principal?.Identity?.Name}");
-                 return Task.CompletedTask;
-             }
-         };
      });
 builder.Services.AddAuthorization();
 
@@ -92,7 +74,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 
-app.MapPost("/tasks", async (TodoTaskDto task, ClaimsPrincipal user, IDbContextFactory<AppDbContext> dbContextFactory) =>
+app.MapPost("/tasks", async (TodoTaskDto task, ClaimsPrincipal user, TasksHub tasksHub, IDbContextFactory<AppDbContext> dbContextFactory) =>
 {
     string? userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -117,6 +99,8 @@ app.MapPost("/tasks", async (TodoTaskDto task, ClaimsPrincipal user, IDbContextF
     context.TodoTasks.Add(todoTask!);
 
     await context.SaveChangesAsync();
+
+    tasksHub.Notify(userId);
 
     return Results.Ok(todoTask);
 }).RequireAuthorization();
@@ -145,10 +129,11 @@ app.MapGet("/tasks",
         FinishedAt = t.FinishedAt,
         Order = t.Order
     }).ToList();
+
     return TypedResults.Ok(taskRecords);
 }).RequireAuthorization();
 
-app.MapDelete("/tasks/{id}", async (int id, ClaimsPrincipal user, IDbContextFactory<AppDbContext> dbContextFactory) =>
+app.MapDelete("/tasks/{id}", async (int id, ClaimsPrincipal user, TasksHub tasksHub, IDbContextFactory<AppDbContext> dbContextFactory) =>
 {
     string? userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -158,10 +143,12 @@ app.MapDelete("/tasks/{id}", async (int id, ClaimsPrincipal user, IDbContextFact
     var context = await dbContextFactory.CreateDbContextAsync();
     var task = await context.TodoTasks.Where(t => t.Id == id && t.UserId == userId).ExecuteDeleteAsync();
 
+    tasksHub.Notify(userId);
+
     return Results.NoContent();
 }).RequireAuthorization();
 
-app.MapPut("/tasks/{id}/state", async (int id, TaskState state, ClaimsPrincipal user, IDbContextFactory<AppDbContext> dbContextFactory) =>
+app.MapPut("/tasks/{id}/state", async (int id, TaskState state, ClaimsPrincipal user, TasksHub tasksHub, IDbContextFactory<AppDbContext> dbContextFactory) =>
 {
     string? userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -184,10 +171,15 @@ app.MapPut("/tasks/{id}/state", async (int id, TaskState state, ClaimsPrincipal 
                     .SetProperty(t => t.UpdatedAt, DateTime.UtcNow)
                     .SetProperty(t => t.FinishedAt, DateTime.UtcNow));
     }
+    tasksHub.Notify(userId);
+
     return Results.NoContent();
 }).RequireAuthorization();
 
-app.MapPut("/tasks/shuffle", async (ClaimsPrincipal user, IDbContextFactory<AppDbContext> dbContextFactory) =>
+app.MapPut("/tasks/shuffle", async (
+    ClaimsPrincipal user,
+    TasksHub tasksHub,
+    IDbContextFactory<AppDbContext> dbContextFactory) =>
 {
     string? userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -204,7 +196,7 @@ app.MapPut("/tasks/shuffle", async (ClaimsPrincipal user, IDbContextFactory<AppD
 
     activeTasks = activeTasks.OrderBy(_ => random.Next()).ToList();
 
-    for(int i = 0; i < activeTasks.Count; i++)
+    for (int i = 0; i < activeTasks.Count; i++)
     {
         activeTasks[i].Order = i;
         activeTasks[i].UpdatedAt = DateTime.UtcNow;
@@ -212,8 +204,27 @@ app.MapPut("/tasks/shuffle", async (ClaimsPrincipal user, IDbContextFactory<AppD
 
     await context.SaveChangesAsync();
 
+    tasksHub.Notify(userId);
 
     return Results.NoContent();
+}).RequireAuthorization();
+
+app.MapGet("/tasks/invalidate", (
+    TasksHub tasksHub,
+    ClaimsPrincipal user,
+    CancellationToken cancellationToken) =>
+{
+    string? currentUserId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    if (string.IsNullOrEmpty(currentUserId))
+        return TypedResults.Ok();
+
+    ChannelReader<InvalidateTasksCache> reader = tasksHub.Subscribe(currentUserId);
+
+    // cancellationToken.Register(() => tasksHub.Unsubscribe(currentUserId, reader));
+
+    return Results.ServerSentEvents(
+        reader.ReadAllAsync(cancellationToken));
 }).RequireAuthorization();
 
 app.MapFallbackToFile("index.html");

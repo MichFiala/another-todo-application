@@ -3,7 +3,7 @@ body {
 }
 
 .app-header {
-   background-color: #a3b18a !important;
+  background-color: #a3b18a !important;
 }
 
 .card-stack {
@@ -11,17 +11,26 @@ body {
   height: 52vh;
 }
 
-input, textarea {
+input,
+textarea {
   font-size: 16px !important;
 }
 
+.mantine-Skeleton-root::after {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 193, 94, 0.4) 0%,
+    rgba(255, 193, 94, 0.3) 75%,
+    rgba(255, 255, 255, 0.2) 100%
+  ) !important;
+}
 
 .card {
   grid-area: 1 / 1;
   background: #f7e7ce;
-  padding: 2rem;
   border-radius: 12px;
   color: #344e41;
+  border: 2px solid #d6bf9b;
 }
 .card-header {
   font-size: 2rem;

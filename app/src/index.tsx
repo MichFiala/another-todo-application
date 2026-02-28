@@ -7,6 +7,8 @@ import { createTheme, MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Auth0Provider } from "@auth0/auth0-react";
+import { TasksSSEListener } from "./TasksSSEListener";
+import { useAuthenticatedUser } from "./authHook";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement,

@@ -8,16 +8,13 @@ export function NewTodoCard({
   index,
   onSave,
   cancel,
-  canCancel
+  canCancel,
 }: {
   item: TodoTaskDtoRecord | TodoTaskDto;
   index: number;
-  onDoubleClick?: () => void;
-  onMouseDown?: (event: React.MouseEvent) => void;
   onSave: (item: TodoTaskDto) => void;
-  onRemove?: (item: TodoTaskDtoRecord) => void;
   cancel?: () => void;
-  canCancel?: boolean
+  canCancel?: boolean;
 }) {
   const [newItem, setNewItem] = React.useState<TodoTaskDto | null>(
     item as TodoTaskDto,
@@ -28,14 +25,15 @@ export function NewTodoCard({
       key={index}
       className="card"
       style={{
-        zIndex: index,
-        transform: `translateX(${(index % 3) * 4}px)`,
+        zIndex: 1000 + index,
+        transform: `translateX(${(index > 3 ? 2 : index) * 7}px)`,
       }}
       align="stretch"
       gap="md"
+      mr={30}
     >
       {newItem && onSave && cancel && (
-        <>
+        <Stack m={20}>
           <TextInput
             placeholder="Název úkolu"
             value={newItem.name}
@@ -65,16 +63,11 @@ export function NewTodoCard({
           </Button>
 
           {canCancel && (
-            <Button
-              variant="light"
-              size="lg"
-              onClick={cancel}
-              c={"blue"}
-            >
+            <Button variant="light" size="lg" onClick={cancel} c={"blue"}>
               <ArrowLeft />
             </Button>
           )}
-        </>
+        </Stack>
       )}
     </Stack>
   );

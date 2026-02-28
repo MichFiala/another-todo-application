@@ -1,17 +1,15 @@
 import axios from "axios";
-import { useAuth0 } from "@auth0/auth0-react";
 import { ApiApi, Configuration } from "./api-client";
 
 import { useMemo } from "react";
 import { useAuthenticatedUser } from "./authHook";
 
 const useApi = () => {
-    const { getAccessTokenSilently } = useAuth0();
     const {
         user,
         accessToken,
         isAuthenticated,
-        isLoading: isLoadingAuth,
+        isLoading,
     } = useAuthenticatedUser();
 
     return useMemo(() => {

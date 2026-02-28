@@ -1,6 +1,20 @@
-import { Button, Stack, Typography } from "@mantine/core";
+import {
+  Button,
+  Group,
+  SimpleGrid,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mantine/core";
 import { TodoTaskDtoRecord } from "./api-client";
-import { Check, Pause, Trash } from "react-feather";
+import {
+  Check,
+  CheckCircle,
+  Clock,
+  Pause,
+  Trash,
+  XCircle,
+} from "react-feather";
 import {
   motion,
   useAnimation,
@@ -17,12 +31,14 @@ export function Card({
   item,
   index,
   onFinish,
+  canSnooze,
   onSnooze,
   onRemove,
 }: {
   item: TodoTaskDtoRecord;
   index: number;
   onFinish?: () => void;
+  canSnooze?: boolean;
   onSnooze?: () => void;
   onRemove?: (item: TodoTaskDtoRecord) => void;
   cancel?: () => void;
@@ -44,7 +60,7 @@ export function Card({
         .start({ x: -ANIMATION_THRESHOLD, opacity: 0 })
         .then(() => onRemove?.(item as any));
     } else {
-      controls.start({ x: 0, y: 0, rotate: 0 }); // snap zpět
+      controls.start({ x: (index % 3) * 7, y: 0, rotate: 0 });
     }
   };
 
@@ -55,57 +71,62 @@ export function Card({
       dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       className="card"
       style={{
-        zIndex: index,
-        transform: `translateX(${(index % 3) * 4}px)`,
-        x,
-        rotate,
+        zIndex: 999 + index,
         cursor: "grab",
       }}
+      initial={{ x: (index >= 3 ? 2 : index) * 7 }}
       animate={controls}
       onDragEnd={handleDragEnd}
       align="stretch"
       justify="space-between"
       gap="md"
+      mr={30}
     >
-      <Typography className="card-header">{item.name}</Typography>
-      <Typography className="card-body">{item.description}</Typography>
-      <Button.Group orientation="vertical">
-        {onFinish && (
-          <Button
-            m={10}
-            variant="light"
-            size="lg"
-            onClick={onFinish}
-            c={"green"}
-          >
-            <Check />
-          </Button>
-        )}
-
-        {onSnooze && (
-          <Button
-            m={10}
-            variant="light"
-            size="lg"
-            onClick={onSnooze}
-            c={"blue"}
-          >
-            <Pause />
-          </Button>
-        )}
-
+      <Stack m={20} align="center">
+        <Typography className="card-header">{item.name}</Typography>
+        <Typography className="card-body">{item.description}</Typography>
+      </Stack>
+      <SimpleGrid cols={3}  w={"100%"} mb={20}>
+        {/* <Button.Group orientation="horizontal" w={"100%"} > */}
         {onRemove && (
-          <Button
-            m={10}
-            size="md"
-            variant="light"
-            onClick={() => onRemove(item as TodoTaskDtoRecord)}
-            c={"red"}
-          >
-            <Trash />
-          </Button>
+          <Tooltip label="Smazat úkol">
+            <Button
+              variant="transparent"
+              size="xl"
+              onClick={() => onRemove(item as TodoTaskDtoRecord)}
+              c={"red"}
+            >
+              <XCircle />
+            </Button>
+          </Tooltip>
         )}
-      </Button.Group>
+        {onSnooze && (
+          <Tooltip label="Odložit úkol">
+            <Button
+              variant="transparent"
+              onClick={onSnooze}
+              c={"blue"}
+              disabled={!canSnooze}
+              size="xl"
+            >
+              <Clock />
+            </Button>
+          </Tooltip>
+        )}
+        {onFinish && (
+          <Tooltip label="Dokončit úkol">
+            <Button
+              variant="transparent"
+              onClick={onFinish}
+              c={"green"}
+              size="xl"
+            >
+              <CheckCircle />
+            </Button>
+          </Tooltip>
+        )}
+        {/* </Button.Group> */}
+      </SimpleGrid>
     </MotionStack>
     // </motion.div>
   );
